@@ -383,12 +383,12 @@
                             </button>
                           </li>
                           <li *ngIf="!address.isDefault">
-                            <button class="dropdown-item" (click)="setDefaultAddress((address as any)._id)">
+                            <button class="dropdown-item" (click)="setDefaultAddress(address._id)">
   <i class="fas fa-star me-2"></i>Set as Default
 </button>
                           </li>
                           <li>
-                            <button class="dropdown-item text-danger" (click)="deleteAddress((address as any)._id)">
+                            <button class="dropdown-item text-danger" (click)="deleteAddress(address._id)">
                               <i class="fas fa-trash me-2"></i>Delete
                             </button>
                           </li>

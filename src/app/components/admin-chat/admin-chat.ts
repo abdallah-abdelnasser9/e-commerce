@@ -38,6 +38,7 @@ export class AdminChatComponent implements OnInit, OnDestroy {
   isSending: boolean = false;
   isLoading: boolean = true;
   isSocketConnected: boolean = false;
+  isAdminOnline: boolean = false;
   
   // User typing state
   userTypingMap: Map<string, boolean> = new Map();

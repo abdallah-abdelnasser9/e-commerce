@@ -308,7 +308,7 @@ export class ProfileComponent implements OnInit, OnDestroy {
   }
 
   editAddress(address: Address): void {
-    this.isEditingAddress = (address as any)._id || 'temp';
+    this.isEditingAddress = address._id ?? null;
     this.isAddingAddress = false;
     this.addressForm.patchValue(address);
   }
