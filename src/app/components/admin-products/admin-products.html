@@ -1,0 +1,220 @@
+<!-- src/app/components/admin/products/admin-products.component.html -->
+<div class="admin-products">
+  <!-- Header -->
+  <div class="header">
+    <h2>Manage Products</h2>
+    <button class="btn btn-primary" (click)="addProduct()">
+      <i class="fas fa-plus"></i> Add New Product
+    </button>
+  </div>
+
+  <!-- Loading Spinner -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading products...</p>
+  </div>
+
+  <!-- Stats Cards -->
+  <div *ngIf="!isLoading" class="row stats-row">
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon bg-primary">
+          <i class="fas fa-box"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ totalProducts }}</h3>
+          <p>Total Products</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon bg-success">
+          <i class="fas fa-check-circle"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ activeProducts }}</h3>
+          <p>Active Products</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon bg-warning">
+          <i class="fas fa-star"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ featuredProducts }}</h3>
+          <p>Featured</p>
+        </div>
+      </div>
+    </div>
+    <div class="col-md-3">
+      <div class="stat-card">
+        <div class="stat-icon bg-danger">
+          <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="stat-info">
+          <h3>{{ lowStockProducts }}</h3>
+          <p>Low Stock</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Products Table -->
+  <div *ngIf="!isLoading" class="card">
+    <div class="card-header">
+      <h5 class="mb-0">All Products</h5>
+    </div>
+    <div class="card-body">
+      <!-- Search and Filters -->
+      <div class="row mb-3">
+        <div class="col-md-6">
+          <div class="input-group">
+            <input type="text" class="form-control" placeholder="Search products..." 
+                   [(ngModel)]="searchTerm" (keyup.enter)="searchProducts()">
+            <button class="btn btn-outline-secondary" (click)="searchProducts()">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
+        <div class="col-md-6 text-end">
+          <div class="btn-group">
+            <button class="btn btn-outline-secondary" [class.active]="filterStatus === 'all'" 
+                    (click)="filterProducts('all')">All</button>
+            <button class="btn btn-outline-success" [class.active]="filterStatus === 'active'" 
+                    (click)="filterProducts('active')">Active</button>
+            <button class="btn btn-outline-warning" [class.active]="filterStatus === 'inactive'" 
+                    (click)="filterProducts('inactive')">Inactive</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Products Table -->
+      <div class="table-responsive">
+        <table class="table table-hover">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Image</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Stock</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let product of filteredProducts">
+              <td class="text-muted">
+                <small>{{ product._id?.substring(0, 8) || 'N/A' }}...</small>
+              </td>
+              <td>
+                <img [src]="product.images && product.images[0] ? product.images[0] : 'assets/images/placeholder.png'" 
+                     alt="{{ product.name }}" 
+                     class="product-thumbnail">
+              </td>
+              <td>
+                <strong>{{ product.name }}</strong>
+                <br>
+                <small class="text-muted">{{ product.brand || 'No brand' }}</small>
+              </td>
+              <td>
+                <span class="badge bg-info">
+                  {{ getCategoryName(product.category) }}
+                </span>
+              </td>
+              <td>
+                <strong>${{ (product.price || 0).toFixed(2) }}</strong>
+                <br>
+                <small *ngIf="product.discountPrice" class="text-danger">
+                  <del>${{ product.discountPrice.toFixed(2) }}</del>
+                </small>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-success': product.stock > 10,
+                  'bg-warning': product.stock > 0 && product.stock <= 10,
+                  'bg-danger': product.stock === 0
+                }">
+                  {{ product.stock || 0 }} units
+                </span>
+              </td>
+              <td>
+                <span class="badge" [ngClass]="{
+                  'bg-success': product.isActive,
+                  'bg-secondary': !product.isActive
+                }">
+                  {{ product.isActive ? 'Active' : 'Inactive' }}
+                </span>
+              </td>
+              <td>
+                <div class="btn-group btn-group-sm">
+                  <button class="btn btn-info" (click)="viewProduct(product.slug)" 
+                          title="View on site">
+                    <i class="fas fa-eye"></i>
+                  </button>
+                  <button class="btn btn-primary" (click)="editProduct(product._id)" 
+                          title="Edit">
+                    <i class="fas fa-edit"></i>
+                  </button>
+                  <button class="btn" [ngClass]="{
+                    'btn-warning': product.isActive,
+                    'btn-success': !product.isActive
+                  }" (click)="toggleProductStatus(product._id, product.isActive)" 
+                  [title]="product.isActive ? 'Deactivate' : 'Activate'">
+                    <i [class]="product.isActive ? 'fas fa-ban' : 'fas fa-check'"></i>
+                  </button>
+                  <button class="btn btn-danger" (click)="deleteProduct(product._id, product.name)" 
+                          title="Delete">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- No Products Message -->
+      <div *ngIf="filteredProducts.length === 0" class="text-center py-5">
+        <i class="fas fa-box fa-4x text-muted mb-3"></i>
+        <h4>No Products Found</h4>
+        <p class="text-muted">Start by adding your first product</p>
+        <button class="btn btn-primary" (click)="addProduct()">
+          <i class="fas fa-plus"></i> Add New Product
+        </button>
+      </div>
+
+      <!-- Pagination -->
+      <div *ngIf="totalPages > 1" class="pagination-container mt-3">
+        <nav>
+          <ul class="pagination justify-content-center">
+            <li class="page-item" [class.disabled]="currentPage === 1">
+              <a class="page-link" (click)="goToPage(currentPage - 1)" 
+                 [class.pointer-events-none]="currentPage === 1">
+                <i class="fas fa-chevron-left"></i>
+              </a>
+            </li>
+            
+            <li *ngFor="let page of getPageNumbers()" class="page-item" 
+                [class.active]="page === currentPage">
+              <a class="page-link" (click)="goToPage(page)">{{ page }}</a>
+            </li>
+            
+            <li class="page-item" [class.disabled]="currentPage === totalPages">
+              <a class="page-link" (click)="goToPage(currentPage + 1)" 
+                 [class.pointer-events-none]="currentPage === totalPages">
+                <i class="fas fa-chevron-right"></i>
+              </a>
+            </li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </div>
+</div>

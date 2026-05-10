@@ -1,0 +1,215 @@
+<div class="admin-orders">
+  <!-- Header -->
+  <div class="header">
+    <h2>Manage Orders</h2>
+    <div class="date-filter">
+      <input type="date" class="form-control" [(ngModel)]="startDate" (change)="filterByDate()">
+      <span class="mx-2">to</span>
+      <input type="date" class="form-control" [(ngModel)]="endDate" (change)="filterByDate()">
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading orders...</p>
+  </div>
+
+  <!-- Content -->
+  <div *ngIf="!isLoading">
+    <!-- Stats Cards -->
+    <div class="row stats-row">
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-primary">
+            <i class="fas fa-shopping-bag"></i>
+          </div>
+          <div class="stat-info">
+            <h3>{{ totalOrders }}</h3>
+            <p>Total Orders</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-success">
+            <i class="fas fa-check-circle"></i>
+          </div>
+          <div class="stat-info">
+            <h3>{{ completedOrders }}</h3>
+            <p>Completed</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-warning">
+            <i class="fas fa-clock"></i>
+          </div>
+          <div class="stat-info">
+            <h3>{{ pendingOrders }}</h3>
+            <p>Pending</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stat-card">
+          <div class="stat-icon bg-info">
+            <i class="fas fa-dollar-sign"></i>
+          </div>
+          <div class="stat-info">
+            <h3>{{ totalRevenue | currency }}</h3>
+            <p>Total Revenue</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Orders Table -->
+    <div class="card">
+      <div class="card-header">
+        <h5 class="mb-0">All Orders</h5>
+        <small class="text-muted">Showing {{ filteredOrders.length }} of {{ totalOrders }} orders</small>
+      </div>
+      <div class="card-body">
+        <!-- Search and Filters -->
+        <div class="row mb-3">
+          <div class="col-md-6">
+            <div class="input-group">
+              <input type="text" class="form-control" placeholder="Search orders..." 
+                     [(ngModel)]="searchTerm" (keyup.enter)="searchOrders()">
+              <button class="btn btn-outline-secondary" (click)="searchOrders()">
+                <i class="fas fa-search"></i>
+              </button>
+            </div>
+          </div>
+          <div class="col-md-6 text-end">
+            <div class="btn-group">
+              <button class="btn btn-outline-secondary" [class.active]="filterStatus === 'all'" 
+                      (click)="filterOrders('all')">All</button>
+              <button class="btn btn-outline-primary" [class.active]="filterStatus === 'pending'" 
+                      (click)="filterOrders('pending')">Pending</button>
+              <button class="btn btn-outline-info" [class.active]="filterStatus === 'processing'" 
+                      (click)="filterOrders('processing')">Processing</button>
+              <button class="btn btn-outline-success" [class.active]="filterStatus === 'delivered'" 
+                      (click)="filterOrders('delivered')">Delivered</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Orders Table -->
+        <div class="table-responsive">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Order ID</th>
+                <th>Customer</th>
+                <th>Date</th>
+                <th>Items</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Payment</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let order of filteredOrders">
+                <td>
+                  <strong>#{{ order.orderId }}</strong>
+                </td>
+                <td>
+                  <div>
+                    <strong>{{ getOrderCustomerName(order) }}</strong>
+                    <br>
+                    <small class="text-muted">{{ getOrderCustomerEmail(order) }}</small>
+                  </div>
+                </td>
+                <td>
+                  {{ getOrderDate(order) | date:'shortDate' }}
+                  <br>
+                  <small class="text-muted">{{ getOrderDate(order) | date:'shortTime' }}</small>
+                </td>
+                <td>
+                  <span class="badge bg-info">
+                    {{ getOrderItemsCount(order) }} items
+                  </span>
+                </td>
+                <td>
+                  <strong>{{ getOrderTotal(order) | currency }}</strong>
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="getStatusBadgeClass(order.status)">
+                    {{ order.status }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge" [ngClass]="getPaymentStatusBadgeClass(order.paymentStatus)">
+                    {{ order.paymentStatus }}
+                  </span>
+                  <br>
+                  <small class="text-muted">{{ order.paymentMethod }}</small>
+                </td>
+                <td>
+                  <div class="btn-group btn-group-sm">
+                    <button class="btn btn-primary" (click)="viewOrder(order.orderId)" 
+                            title="View Details">
+                      <i class="fas fa-eye"></i>
+                    </button>
+                    <button class="btn btn-info" (click)="updateOrderStatus(order)" 
+                            title="Update Status">
+                      <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-danger" (click)="deleteOrder(order.orderId, getOrderCustomerName(order))" 
+                            title="Delete">
+                      <i class="fas fa-trash"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+              <tr *ngIf="filteredOrders.length === 0">
+                <td colspan="8" class="text-center py-5">
+                  <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+                  <h4>No Orders Found</h4>
+                  <p class="text-muted">
+                    {{ searchTerm ? 'No orders match your search' : 'No orders have been placed yet' }}
+                  </p>
+                  <button *ngIf="searchTerm" class="btn btn-primary mt-2" (click)="searchTerm = ''; searchOrders()">
+                    Clear Search
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div *ngIf="totalPages > 1" class="pagination-container mt-3">
+          <nav>
+            <ul class="pagination justify-content-center">
+              <li class="page-item" [class.disabled]="currentPage === 1">
+                <a class="page-link" (click)="goToPage(currentPage - 1)" 
+                   [class.pointer-events-none]="currentPage === 1">
+                  <i class="fas fa-chevron-left"></i>
+                </a>
+              </li>
+              
+              <li *ngFor="let page of getPageNumbers()" class="page-item" 
+                  [class.active]="page === currentPage">
+                <a class="page-link" (click)="goToPage(page)">{{ page }}</a>
+              </li>
+              
+              <li class="page-item" [class.disabled]="currentPage === totalPages">
+                <a class="page-link" (click)="goToPage(currentPage + 1)" 
+                   [class.pointer-events-none]="currentPage === totalPages">
+                  <i class="fas fa-chevron-right"></i>
+                </a>
+              </li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

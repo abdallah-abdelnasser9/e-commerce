@@ -1,0 +1,184 @@
+<div class="container mt-4">
+  <div class="row">
+    <!-- Filters -->
+    <div class="col-md-3">
+      <div class="card mb-4">
+        <div class="card-header">
+          <h5 class="mb-0">Filters</h5>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label">Category</label>
+            <select class="form-select" (change)="onCategoryChange($event)" [value]="category">
+              <option value="">All Categories</option>
+              <option *ngFor="let cat of categories" [value]="cat.slug" [selected]="cat.slug === category">
+                {{ cat.name }}
+              </option>
+            </select>
+          </div>
+
+          <button class="btn btn-outline-secondary w-100" (click)="clearFilters()">
+            <i class="fas fa-times me-2"></i> Clear Filters
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Products -->
+    <div class="col-md-9">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>
+          Products 
+          <span *ngIf="category" class="badge bg-primary ms-2">
+            {{ getCategoryName() }}
+          </span>
+          <span *ngIf="searchQuery" class="badge bg-info ms-2">
+            Search: "{{ searchQuery }}"
+          </span>
+        </h2>
+
+        <div class="input-group" style="width: 300px">
+          <input
+            type="text"
+            class="form-control"
+            placeholder="Search products..."
+            [(ngModel)]="searchQuery"
+            (keyup.enter)="onSearch()"
+          />
+          <button class="btn btn-outline-primary" (click)="onSearch()">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Results Info -->
+      <div class="mb-3">
+        <p class="text-muted">
+          Showing {{ products.length }} product(s)
+          <span *ngIf="pagination.totalPages > 1">
+            - Page {{ pagination.page }} of {{ pagination.totalPages }}
+          </span>
+        </p>
+      </div>
+
+      <!-- Loading -->
+      <div *ngIf="isLoading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2">Loading products...</p>
+      </div>
+
+      <!-- Products List -->
+      <ng-container *ngIf="!isLoading">
+        <div *ngIf="products.length > 0; else noProducts">
+          <div class="row">
+            <div class="col-md-4 mb-4" *ngFor="let product of products">
+              <div class="card h-100">
+                <img
+                  [src]="product.images?.[0] || 'https://via.placeholder.com/300x200'"
+                  class="card-img-top"
+                  style="height: 200px; object-fit: cover;"
+                  alt="{{ product.name }}"
+                />
+
+                <div class="card-body d-flex flex-column">
+                  <h5 class="card-title">{{ product.name }}</h5>
+                  <p class="card-text text-muted flex-grow-1">
+                    {{ (product.description || 'No description available') | slice: 0:80 }}...
+                  </p>
+
+                  <div class="d-flex justify-content-between align-items-center mt-auto">
+                    <div>
+                      <strong class="text-primary h5">
+                        ${{ product.discountPrice || product.price }}
+                      </strong>
+                      <span *ngIf="product.discountPrice" class="text-danger text-decoration-line-through small ms-2">
+                        ${{ product.price }}
+                      </span>
+                    </div>
+                    <span class="badge" [ngClass]="product.stock > 0 ? 'bg-success' : 'bg-danger'">
+                      {{ product.stock > 0 ? product.stock + ' in stock' : 'Out of stock' }}
+                    </span>
+                  </div>
+                </div>
+
+                <div class="card-footer d-grid gap-2">
+                  <a
+                    class="btn btn-primary"
+                    [routerLink]="['/products', product._id]"
+                  >
+                    View Details
+                  </a>
+
+                  <button
+                    class="btn btn-outline-primary"
+                    [disabled]="product.stock === 0"
+                    (click)="addToCart(product)"
+                  >
+                    Add to Cart
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pagination -->
+          <nav *ngIf="pagination.totalPages > 1" class="mt-4">
+            <ul class="pagination justify-content-center">
+              <li class="page-item" [class.disabled]="pagination.page === 1">
+                <button
+                  class="page-link"
+                  (click)="onPageChange(pagination.page - 1)"
+                  [disabled]="pagination.page === 1"
+                >
+                  Previous
+                </button>
+              </li>
+
+              <li
+                class="page-item"
+                *ngFor="let page of getPages()"
+                [class.active]="pagination.page === page"
+              >
+                <button
+                  class="page-link"
+                  (click)="onPageChange(page)"
+                >
+                  {{ page }}
+                </button>
+              </li>
+
+              <li
+                class="page-item"
+                [class.disabled]="pagination.page === pagination.totalPages"
+              >
+                <button
+                  class="page-link"
+                  (click)="onPageChange(pagination.page + 1)"
+                  [disabled]="pagination.page === pagination.totalPages"
+                >
+                  Next
+                </button>
+              </li>
+            </ul>
+          </nav>
+        </div>
+
+        <!-- No Products -->
+        <ng-template #noProducts>
+          <div class="text-center py-5">
+            <i class="fas fa-search fa-3x text-muted mb-3"></i>
+            <h4>No products found</h4>
+            <p class="text-muted mb-3">
+              {{ searchQuery ? 'No products match your search' : 'Try adjusting your filters' }}
+            </p>
+            <button class="btn btn-primary mt-3" (click)="clearFilters()">
+              Clear Filters
+            </button>
+          </div>
+        </ng-template>
+      </ng-container>
+    </div>
+  </div>
+</div>

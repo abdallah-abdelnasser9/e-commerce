@@ -1,0 +1,68 @@
+/* order-list.css */
+.accordion-button:not(.collapsed) {
+  background-color: #f8f9fa;
+  box-shadow: none;
+}
+
+.accordion-button:focus {
+  box-shadow: none;
+  border-color: rgba(0,0,0,.125);
+}
+
+.card {
+  border-radius: 10px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 5px 20px rgba(0,0,0,0.15);
+}
+
+.card-header {
+  border-radius: 10px 10px 0 0 !important;
+}
+
+.btn-link {
+  text-decoration: none;
+  color: #6c757d;
+}
+
+.btn-link:hover {
+  color: #0d6efd;
+}
+
+.badge {
+  font-size: 0.75em;
+  font-weight: 500;
+  padding: 0.4em 0.8em;
+}
+
+.img-thumbnail {
+  border-radius: 8px;
+  border: 1px solid #dee2e6;
+}
+
+.text-muted {
+  color: #6c757d !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  .card-header .d-flex {
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  
+  .card-header .d-flex > div {
+    margin-bottom: 0.5rem;
+  }
+  
+  .card-header .d-flex > div:last-child {
+    margin-bottom: 0;
+  }
+  
+  .accordion-button {
+    padding: 0.75rem 1rem;
+  }
+}

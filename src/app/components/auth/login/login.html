@@ -1,0 +1,103 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h3 class="mb-0 text-center">
+            <i class="fas fa-sign-in-alt me-2"></i>Login
+          </h3>
+        </div>
+        <div class="card-body">
+          <!-- Error Message -->
+          <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{errorMessage}}
+            <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+          </div>
+
+          <!-- Login Form -->
+          <form #loginForm="ngForm" (ngSubmit)="onSubmit()">
+            <!-- Email Field -->
+            <div class="mb-3">
+              <label for="email" class="form-label">
+                <i class="fas fa-envelope me-2"></i>Email Address
+              </label>
+              <input type="email" 
+                     class="form-control" 
+                     id="email" 
+                     name="email"
+                     [(ngModel)]="credentials.email"
+                     required
+                     #emailInput="ngModel"
+                     placeholder="Enter your email">
+              <div *ngIf="emailInput.invalid && (emailInput.touched || submitted)" class="text-danger small mt-1">
+                <div *ngIf="emailInput.errors?.['required']">Email is required</div>
+                <div *ngIf="credentials.email && !validateEmail(credentials.email)">
+                  Please enter a valid email address
+                </div>
+              </div>
+            </div>
+
+            <!-- Password Field -->
+            <div class="mb-4">
+              <label for="password" class="form-label">
+                <i class="fas fa-lock me-2"></i>Password
+              </label>
+              <div class="input-group">
+                <input [type]="showPassword ? 'text' : 'password'" 
+                       class="form-control" 
+                       id="password" 
+                       name="password"
+                       [(ngModel)]="credentials.password"
+                       required
+                       #passwordInput="ngModel"
+                       placeholder="Enter your password">
+                <button class="btn btn-outline-secondary" 
+                        type="button" 
+                        (click)="togglePasswordVisibility()">
+                  <i class="fas" [class.fa-eye]="!showPassword" [class.fa-eye-slash]="showPassword"></i>
+                </button>
+              </div>
+              <div *ngIf="passwordInput.invalid && (passwordInput.touched || submitted)" class="text-danger small mt-1">
+                Password is required
+              </div>
+            </div>
+
+            <!-- Remember Me & Forgot Password -->
+            <div class="mb-4 d-flex justify-content-between align-items-center">
+              <div class="form-check">
+                <input type="checkbox" class="form-check-input" id="rememberMe">
+                <label class="form-check-label" for="rememberMe">Remember me</label>
+              </div>
+              <a href="#" class="text-decoration-none">Forgot password?</a>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid mb-3">
+              <button type="submit" 
+                      class="btn btn-primary btn-lg"
+                      [disabled]="loginForm.invalid || isLoading">
+                <span *ngIf="!isLoading">
+                  <i class="fas fa-sign-in-alt me-2"></i>Login
+                </span>
+                <span *ngIf="isLoading">
+                  <div class="spinner-border spinner-border-sm me-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  Logging in...
+                </span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Links -->
+          <div class="text-center">
+            <p class="mb-2">Don't have an account?</p>
+            <button class="btn btn-outline-primary" (click)="goToRegister()">
+              <i class="fas fa-user-plus me-2"></i>Sign Up
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

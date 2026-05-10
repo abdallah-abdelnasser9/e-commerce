@@ -1,0 +1,122 @@
+/* Product Detail Styles */
+.cursor-pointer {
+  cursor: pointer;
+}
+
+/* Thumbnails */
+.image-thumbnails .thumbnail {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  transition: all 0.2s;
+  border: 2px solid transparent;
+}
+
+.image-thumbnails .thumbnail:hover {
+  transform: scale(1.05);
+}
+
+.image-thumbnails .thumbnail.active {
+  border-color: #0d6efd;
+}
+
+/* Rating Stars */
+.rating-stars {
+  display: inline-block;
+  position: relative;
+  font-size: 1.25rem;
+}
+
+.rating-stars .stars {
+  --percent: calc(var(--rating) / 5 * 100%);
+  display: inline-block;
+  font-size: 1.25rem;
+  line-height: 1;
+}
+
+.rating-stars .stars::before {
+  content: '★★★★★';
+  background: linear-gradient(90deg, #ffc107 var(--percent), #e4e5e9 var(--percent));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.star-rating {
+  font-size: 2rem;
+}
+
+.star-rating .fa-star {
+  transition: color 0.2s;
+}
+
+.star-rating .fa-star:hover {
+  color: #ffc107 !important;
+}
+
+/* Review Cards */
+.review-card:last-child {
+  border-bottom: none !important;
+}
+
+.review-image {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+}
+
+.review-image-preview {
+  position: relative;
+  width: 100px;
+  height: 100px;
+}
+
+.review-image-preview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.review-image-preview .btn-close {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: white;
+  border-radius: 50%;
+  padding: 5px;
+  opacity: 0.8;
+}
+
+.image-upload-box {
+  width: 100px;
+  height: 100px;
+  border: 2px dashed #dee2e6;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.2s;
+}
+
+.image-upload-box:hover {
+  border-color: #0d6efd;
+  color: #0d6efd;
+}
+
+/* Quantity Input */
+.input-group .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .image-thumbnails .thumbnail {
+    width: 60px;
+    height: 60px;
+  }
+  
+  .star-rating {
+    font-size: 1.5rem;
+  }
+}

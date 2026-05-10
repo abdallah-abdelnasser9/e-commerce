@@ -1,0 +1,529 @@
+<div class="container py-5">
+  <!-- Loading State -->
+  <div *ngIf="isLoading && !user" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading profile...</p>
+  </div>
+
+  <!-- Not Authenticated -->
+  <div *ngIf="!isLoading && !user" class="text-center py-5">
+    <div class="card shadow-sm">
+      <div class="card-body py-5">
+        <i class="fas fa-user-circle fa-5x text-muted mb-4"></i>
+        <h3>Please Sign In</h3>
+        <p class="text-muted mb-4">You need to be logged in to view your profile.</p>
+        <a routerLink="/login" class="btn btn-primary btn-lg">
+          <i class="fas fa-sign-in-alt me-2"></i>Sign In
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <!-- Profile Content -->
+  <div *ngIf="user" class="row">
+    <!-- Sidebar -->
+    <div class="col-lg-3 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-body text-center">
+          <!-- Avatar -->
+          <div class="position-relative mb-3">
+            <img [src]="avatarPreview || user.avatar || 'https://via.placeholder.com/150'" 
+                 class="rounded-circle border border-3 border-primary"
+                 width="150" height="150" alt="Profile Picture">
+            <label for="avatarUpload" class="position-absolute bottom-0 end-0 bg-primary text-white rounded-circle p-2 cursor-pointer">
+              <i class="fas fa-camera"></i>
+              <input type="file" id="avatarUpload" class="d-none" accept="image/*" (change)="onAvatarSelected($event)">
+            </label>
+          </div>
+          
+          <h5 class="mb-1">{{ user.name }}</h5>
+          <p class="text-muted mb-3">{{ user.email }}</p>
+          
+          <!-- Upload Avatar Button -->
+          <div *ngIf="avatarFile" class="mb-3">
+            <button class="btn btn-success btn-sm w-100" (click)="uploadAvatar()" [disabled]="isLoading">
+              <i class="fas fa-upload me-1"></i>Upload Picture
+            </button>
+            <button class="btn btn-outline-secondary btn-sm w-100 mt-1" 
+                    (click)="avatarFile = null; avatarPreview = null"
+                    [disabled]="isLoading">
+              Cancel
+            </button>
+          </div>
+
+          <!-- Navigation -->
+          <div class="list-group">
+            <button class="list-group-item list-group-item-action d-flex align-items-center"
+                    [class.active]="activeTab === 'profile'"
+                    (click)="setActiveTab('profile')">
+              <i class="fas fa-user me-2"></i>
+              Profile
+            </button>
+            <button class="list-group-item list-group-item-action d-flex align-items-center"
+                    [class.active]="activeTab === 'security'"
+                    (click)="setActiveTab('security')">
+              <i class="fas fa-lock me-2"></i>
+              Security
+            </button>
+            <button class="list-group-item list-group-item-action d-flex align-items-center"
+                    [class.active]="activeTab === 'addresses'"
+                    (click)="setActiveTab('addresses')">
+              <i class="fas fa-map-marker-alt me-2"></i>
+              Addresses
+              <span class="badge bg-primary rounded-pill ms-auto">
+                {{ addressCount }}
+              </span>
+            </button>
+            <button class="list-group-item list-group-item-action d-flex align-items-center"
+                    [class.active]="activeTab === 'orders'"
+                    (click)="setActiveTab('orders')">
+              <i class="fas fa-shopping-bag me-2"></i>
+              Orders
+              <span class="badge bg-primary rounded-pill ms-auto">
+                {{ orders.length }}
+              </span>
+            </button>
+            <button class="list-group-item list-group-item-action d-flex align-items-center"
+                    [class.active]="activeTab === 'wishlist'"
+                    (click)="setActiveTab('wishlist')">
+              <i class="fas fa-heart me-2"></i>
+              Wishlist
+              <span class="badge bg-primary rounded-pill ms-auto">
+                {{ wishlistCount }}
+              </span>
+            </button>
+          </div>
+
+          <div class="mt-3">
+            <button class="btn btn-outline-danger w-100" (click)="logout()">
+              <i class="fas fa-sign-out-alt me-2"></i>Logout
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="col-lg-9">
+      <!-- Messages -->
+      <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show">
+        {{ successMessage }}
+        <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+      </div>
+      
+      <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show">
+        {{ errorMessage }}
+        <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+      </div>
+
+      <!-- Loading Content -->
+      <div *ngIf="isLoading" class="text-center py-3">
+        <div class="spinner-border spinner-border-sm text-primary" role="status">
+          <span class="visually-hidden">Loading...</span>
+        </div>
+        <p class="mt-2 small">Loading...</p>
+      </div>
+
+      <!-- Profile Tab -->
+      <div *ngIf="activeTab === 'profile' && !isLoading">
+        <div class="card shadow-sm">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Profile Information</h4>
+            <button class="btn btn-sm btn-outline-primary" 
+                    (click)="isEditingProfile = !isEditingProfile"
+                    *ngIf="!isEditingProfile">
+              <i class="fas fa-edit me-1"></i>Edit
+            </button>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="profileForm">
+              <div class="row mb-3">
+                <div class="col-md-6">
+                  <label class="form-label">Full Name *</label>
+                  <input type="text" class="form-control" formControlName="name"
+                         [class.is-invalid]="profileForm.get('name')?.invalid && profileForm.get('name')?.touched"
+                         [readonly]="!isEditingProfile">
+                  <div *ngIf="profileForm.get('name')?.invalid && profileForm.get('name')?.touched" 
+                       class="invalid-feedback">
+                    Name is required (min 2 characters)
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">Phone Number</label>
+                  <input type="tel" class="form-control" formControlName="phone"
+                         [class.is-invalid]="profileForm.get('phone')?.invalid && profileForm.get('phone')?.touched"
+                         [readonly]="!isEditingProfile">
+                  <div *ngIf="profileForm.get('phone')?.invalid && profileForm.get('phone')?.touched" 
+                       class="invalid-feedback">
+                    Please enter a valid 10-digit phone number
+                  </div>
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">Email Address *</label>
+                <input type="email" class="form-control" formControlName="email"
+                       [class.is-invalid]="profileForm.get('email')?.invalid && profileForm.get('email')?.touched"
+                       readonly>
+                <div *ngIf="profileForm.get('email')?.invalid && profileForm.get('email')?.touched" 
+                     class="invalid-feedback">
+                  Please enter a valid email address
+                </div>
+                <small class="text-muted">Email cannot be changed</small>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">Role</label>
+                <input type="text" class="form-control" [value]="user.role" disabled>
+              </div>
+              
+              <div class="mb-3" *ngIf="defaultAddress">
+                <label class="form-label">Default Address</label>
+                <div class="card bg-light">
+                  <div class="card-body">
+                    <p class="mb-0">{{ defaultAddress.street }}</p>
+                    <p class="mb-0">{{ defaultAddress.city }}, {{ defaultAddress.state }} {{ defaultAddress.zipCode }}</p>
+                    <p class="mb-0">{{ defaultAddress.country }}</p>
+                  </div>
+                </div>
+              </div>
+              
+              <div class="d-flex gap-2" *ngIf="isEditingProfile">
+                <button type="button" class="btn btn-primary" 
+                        [disabled]="!profileForm.valid || isLoading"
+                        (click)="updateProfile()">
+                  <i class="fas fa-save me-2"></i>Save Changes
+                </button>
+                <button type="button" class="btn btn-outline-secondary"
+                        (click)="cancelEdit()"
+                        [disabled]="isLoading">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Security Tab -->
+      <div *ngIf="activeTab === 'security' && !isLoading">
+        <div class="card shadow-sm">
+          <div class="card-header bg-white">
+            <h4 class="mb-0">Change Password</h4>
+          </div>
+          <div class="card-body">
+            <form [formGroup]="passwordForm">
+              <div class="mb-3">
+                <label class="form-label">Current Password *</label>
+                <input type="password" class="form-control" formControlName="currentPassword"
+                       [class.is-invalid]="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched">
+                <div *ngIf="passwordForm.get('currentPassword')?.invalid && passwordForm.get('currentPassword')?.touched" 
+                     class="invalid-feedback">
+                  Current password is required
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">New Password *</label>
+                <input type="password" class="form-control" formControlName="newPassword"
+                       [class.is-invalid]="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched">
+                <div *ngIf="passwordForm.get('newPassword')?.invalid && passwordForm.get('newPassword')?.touched" 
+                     class="invalid-feedback">
+                  New password must be at least 6 characters
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <label class="form-label">Confirm New Password *</label>
+                <input type="password" class="form-control" formControlName="confirmPassword"
+                       [class.is-invalid]="passwordForm.get('confirmPassword')?.invalid && passwordForm.get('confirmPassword')?.touched">
+                <div *ngIf="passwordForm.hasError('mismatch')" class="invalid-feedback">
+                  Passwords do not match
+                </div>
+              </div>
+              
+              <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>
+                Password must be at least 6 characters long.
+              </div>
+              
+              <button type="button" class="btn btn-primary"
+                      [disabled]="!passwordForm.valid || isLoading"
+                      (click)="updatePassword()">
+                <i class="fas fa-key me-2"></i>
+                <span *ngIf="isLoading">Updating...</span>
+                <span *ngIf="!isLoading">Change Password</span>
+              </button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <!-- Addresses Tab -->
+      <div *ngIf="activeTab === 'addresses' && !isLoading">
+        <div class="card shadow-sm mb-4">
+          <div class="card-header bg-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">My Addresses</h4>
+            <button class="btn btn-primary btn-sm" (click)="addNewAddress()" [disabled]="isLoading">
+              <i class="fas fa-plus me-1"></i>Add New Address
+            </button>
+          </div>
+          
+          <!-- Add/Edit Address Form -->
+          <div class="card-body" *ngIf="isAddingAddress || isEditingAddress">
+            <h5 class="mb-3">{{ isEditingAddress ? 'Edit' : 'Add New' }} Address</h5>
+            <form [formGroup]="addressForm">
+              <div class="row mb-3">
+                <div class="col-md-8">
+                  <label class="form-label">Street Address *</label>
+                  <input type="text" class="form-control" formControlName="street"
+                         [class.is-invalid]="addressForm.get('street')?.invalid && addressForm.get('street')?.touched">
+                  <div *ngIf="addressForm.get('street')?.invalid && addressForm.get('street')?.touched" 
+                       class="invalid-feedback">
+                    Street address is required
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">City *</label>
+                  <input type="text" class="form-control" formControlName="city"
+                         [class.is-invalid]="addressForm.get('city')?.invalid && addressForm.get('city')?.touched">
+                  <div *ngIf="addressForm.get('city')?.invalid && addressForm.get('city')?.touched" 
+                       class="invalid-feedback">
+                    City is required
+                  </div>
+                </div>
+              </div>
+              
+              <div class="row mb-3">
+                <div class="col-md-4">
+                  <label class="form-label">State *</label>
+                  <select class="form-select" formControlName="state"
+                          [class.is-invalid]="addressForm.get('state')?.invalid && addressForm.get('state')?.touched">
+                    <option value="">Select State</option>
+                    <option *ngFor="let state of states" [value]="state">{{ state }}</option>
+                  </select>
+                  <div *ngIf="addressForm.get('state')?.invalid && addressForm.get('state')?.touched" 
+                       class="invalid-feedback">
+                    Please select a state
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">ZIP Code *</label>
+                  <input type="text" class="form-control" formControlName="zipCode"
+                         [class.is-invalid]="addressForm.get('zipCode')?.invalid && addressForm.get('zipCode')?.touched">
+                  <div *ngIf="addressForm.get('zipCode')?.invalid && addressForm.get('zipCode')?.touched" 
+                       class="invalid-feedback">
+                    Valid ZIP code is required
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <label class="form-label">Country *</label>
+                  <input type="text" class="form-control" formControlName="country"
+                         [class.is-invalid]="addressForm.get('country')?.invalid && addressForm.get('country')?.touched">
+                </div>
+              </div>
+              
+              <div class="mb-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" formControlName="isDefault" id="isDefault">
+                  <label class="form-check-label" for="isDefault">
+                    Set as default shipping address
+                  </label>
+                </div>
+              </div>
+              
+              <div class="d-flex gap-2">
+                <button type="button" class="btn btn-primary"
+                        [disabled]="!addressForm.valid || isLoading"
+                        (click)="saveAddress()">
+                  <i class="fas fa-save me-2"></i>
+                  <span *ngIf="isLoading">Saving...</span>
+                  <span *ngIf="!isLoading">Save Address</span>
+                </button>
+                <button type="button" class="btn btn-outline-secondary"
+                        (click)="cancelAddressEdit()"
+                        [disabled]="isLoading">
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+          
+          <!-- Address List -->
+          <div class="card-body" *ngIf="!isAddingAddress && !isEditingAddress">
+            <div *ngIf="!user.addresses?.length" class="text-center py-4">
+              <i class="fas fa-map-marker-alt fa-3x text-muted mb-3"></i>
+              <h5>No Addresses Saved</h5>
+              <p class="text-muted">Add your first shipping address</p>
+              <button class="btn btn-primary" (click)="addNewAddress()">
+                <i class="fas fa-plus me-1"></i>Add Address
+              </button>
+            </div>
+            
+            <div class="row" *ngIf="user.addresses?.length">
+              <div class="col-md-6 mb-3" *ngFor="let address of user.addresses">
+                <div class="card h-100" [class.border-primary]="address.isDefault">
+                  <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                      <h6 class="mb-0">
+                        <span *ngIf="address.isDefault" class="badge bg-primary me-2">Default</span>
+                        {{ address.city }}, {{ address.state }}
+                      </h6>
+                      <div class="dropdown">
+                        <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" 
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                          <i class="fas fa-ellipsis-v"></i>
+                        </button>
+                        <ul class="dropdown-menu">
+                          <li>
+                            <button class="dropdown-item" (click)="editAddress(address)">
+                              <i class="fas fa-edit me-2"></i>Edit
+                            </button>
+                          </li>
+                          <li *ngIf="!address.isDefault">
+                            <button class="dropdown-item" (click)="setDefaultAddress((address as any)._id)"></button>
+                              <i class="fas fa-star me-2"></i>Set as Default
+                            </button>
+                          </li>
+                          <li>
+                            <button class="dropdown-item text-danger" (click)="deleteAddress((address as any)._id)">
+                              <i class="fas fa-trash me-2"></i>Delete
+                            </button>
+                          </li>
+                        </ul>
+                      </div>
+                    </div>
+                    
+                    <p class="mb-1">{{ address.street }}</p>
+                    <p class="mb-1">{{ address.city }}, {{ address.state }} {{ address.zipCode }}</p>
+                    <p class="mb-0 text-muted">{{ address.country }}</p>
+                    
+                    <div class="mt-3">
+                      <small class="text-muted">
+                        <i class="fas fa-info-circle me-1"></i>
+                        {{ address.isDefault ? 'This is your default shipping address' : 'Click "Set as Default" to make this your main address' }}
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Orders Tab -->
+      <div *ngIf="activeTab === 'orders' && !isLoading">
+        <div class="card shadow-sm">
+          <div class="card-header bg-white">
+            <h4 class="mb-0">Order History</h4>
+          </div>
+          <div class="card-body">
+            <div *ngIf="!orders.length" class="text-center py-5">
+              <i class="fas fa-shopping-bag fa-3x text-muted mb-3"></i>
+              <h5>No Orders Yet</h5>
+              <p class="text-muted mb-4">Start shopping to see your order history here.</p>
+              <a routerLink="/products" class="btn btn-primary">
+                <i class="fas fa-store me-2"></i>Start Shopping
+              </a>
+            </div>
+            
+            <div *ngIf="orders.length">
+              <div class="table-responsive">
+                <table class="table table-hover">
+                  <thead>
+                    <tr>
+                      <th>Order #</th>
+                      <th>Date</th>
+                      <th>Items</th>
+                      <th>Total</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let order of orders">
+                      <td><strong>{{ order.orderNumber }}</strong></td>
+                      <td>{{ order.date | date:'MMM d, yyyy' }}</td>
+                      <td>{{ order.items }} item(s)</td>
+                      <td>${{ order.total | number:'1.2-2' }}</td>
+                      <td>
+                        <span class="badge" [ngClass]="{
+                          'bg-success': order.status === 'Delivered',
+                          'bg-warning': order.status === 'Processing',
+                          'bg-info': order.status === 'Shipped'
+                        }">
+                          {{ order.status }}
+                        </span>
+                      </td>
+                      <td>
+                        <button class="btn btn-sm btn-outline-primary" (click)="viewOrder(order._id)">
+                          <i class="fas fa-eye me-1"></i>View
+                        </button>
+                      </td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Wishlist Tab -->
+      <div *ngIf="activeTab === 'wishlist' && !isLoading">
+        <div class="card shadow-sm">
+          <div class="card-header bg-white">
+            <h4 class="mb-0">My Wishlist</h4>
+          </div>
+          <div class="card-body">
+            <div *ngIf="!wishlistItems.length" class="text-center py-5">
+              <i class="fas fa-heart fa-3x text-muted mb-3"></i>
+              <h5>Your Wishlist is Empty</h5>
+              <p class="text-muted mb-4">Save items you love for later.</p>
+              <a routerLink="/products" class="btn btn-primary">
+                <i class="fas fa-store me-2"></i>Browse Products
+              </a>
+            </div>
+            
+            <div *ngIf="wishlistItems.length" class="row">
+              <div class="col-md-6 mb-3" *ngFor="let item of wishlistItems">
+                <div class="card h-100">
+                  <div class="row g-0">
+                    <div class="col-4">
+                      <img [src]="item.image" class="img-fluid rounded-start h-100" [alt]="item.name">
+                    </div>
+                    <div class="col-8">
+                      <div class="card-body d-flex flex-column h-100">
+                        <div class="d-flex justify-content-between align-items-start">
+                          <h6 class="card-title mb-1">{{ item.name }}</h6>
+                          <button class="btn btn-sm btn-outline-danger" (click)="removeFromWishlist(item._id)">
+                            <i class="fas fa-times"></i>
+                          </button>
+                        </div>
+                        <p class="card-text"><strong>${{ item.price | number:'1.2-2' }}</strong></p>
+                        <p class="card-text small">
+                          <span [ngClass]="{'text-success': item.inStock, 'text-danger': !item.inStock}">
+                            <i class="fas fa-circle me-1"></i>
+                            {{ item.inStock ? 'In Stock' : 'Out of Stock' }}
+                          </span>
+                        </p>
+                        <div class="mt-auto">
+                          <button class="btn btn-sm btn-primary w-100" [disabled]="!item.inStock">
+                            <i class="fas fa-cart-plus me-1"></i>Add to Cart
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,214 @@
+/* src/app/components/admin/products/admin-products.component.css */
+.admin-products {
+  padding: 20px 0;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.stats-row {
+  margin-bottom: 30px;
+}
+
+.stat-card {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.stat-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  color: white;
+  font-size: 1.2rem;
+}
+
+.stat-info h3 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: bold;
+}
+
+.stat-info p {
+  margin: 0;
+  color: #6c757d;
+}
+
+.product-thumbnail {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #dee2e6;
+}
+
+.btn-group .btn {
+  margin: 0 2px;
+}
+
+.page-link {
+  cursor: pointer;
+}
+
+.pointer-events-none {
+  pointer-events: none;
+  opacity: 0.6;
+}
+
+.badge {
+  font-size: 0.75em;
+  padding: 0.35em 0.65em;
+}
+
+.card {
+  border: none;
+  box-shadow: 0 0.15rem 1.75rem 0 rgba(58, 59, 69, 0.15);
+}
+
+.card-header {
+  background-color: #f8f9fc;
+  border-bottom: 1px solid #e3e6f0;
+  padding: 0.75rem 1.25rem;
+}
+
+.table th {
+  border-top: none;
+  border-bottom: 1px solid #e3e6f0;
+  font-weight: 600;
+  color: #5a5c69;
+}
+
+.table td {
+  vertical-align: middle;
+  border-color: #e3e6f0;
+}
+
+.btn-group-sm > .btn {
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+.btn-outline-secondary.active {
+  background-color: #6c757d;
+  color: white;
+}
+
+.btn-outline-success.active {
+  background-color: #28a745;
+  color: white;
+}
+
+.btn-outline-warning.active {
+  background-color: #ffc107;
+  color: black;
+}
+
+.input-group .form-control {
+  border-right: 0;
+}
+
+.input-group .btn-outline-secondary {
+  border-left: 0;
+}
+
+.input-group .form-control:focus {
+  box-shadow: none;
+  border-color: #ced4da;
+}
+
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+.text-muted {
+  color: #858796 !important;
+}
+
+.bg-primary {
+  background-color: #4e73df !important;
+}
+
+.bg-success {
+  background-color: #1cc88a !important;
+}
+
+.bg-warning {
+  background-color: #f6c23e !important;
+}
+
+.bg-danger {
+  background-color: #e74a3b !important;
+}
+
+.bg-info {
+  background-color: #36b9cc !important;
+}
+
+.text-primary {
+  color: #4e73df !important;
+}
+
+.text-success {
+  color: #1cc88a !important;
+}
+
+.text-warning {
+  color: #f6c23e !important;
+}
+
+.text-danger {
+  color: #e74a3b !important;
+}
+
+.border-left-primary {
+  border-left: 0.25rem solid #4e73df !important;
+}
+
+.border-left-success {
+  border-left: 0.25rem solid #1cc88a !important;
+}
+
+.border-left-info {
+  border-left: 0.25rem solid #36b9cc !important;
+}
+
+.border-left-warning {
+  border-left: 0.25rem solid #f6c23e !important;
+}
+
+.pagination .page-item.active .page-link {
+  background-color: #4e73df;
+  border-color: #4e73df;
+}
+
+.pagination .page-link {
+  color: #4e73df;
+}
+
+.pagination .page-link:hover {
+  color: #2e59d9;
+  background-color: #eaecf4;
+}
+
+.table-hover tbody tr:hover {
+  background-color: #f8f9fc;
+}

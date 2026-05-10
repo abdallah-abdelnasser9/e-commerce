@@ -1,0 +1,146 @@
+<div class="container mt-5">
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+      <div class="card shadow">
+        <div class="card-header bg-primary text-white">
+          <h3 class="mb-0 text-center">
+            <i class="fas fa-user-plus me-2"></i>Create Account
+          </h3>
+        </div>
+        <div class="card-body">
+          <!-- Success Message -->
+          <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fas fa-check-circle me-2"></i>{{successMessage}}
+            <button type="button" class="btn-close" (click)="successMessage = ''"></button>
+          </div>
+
+          <!-- Error Message -->
+          <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fas fa-exclamation-circle me-2"></i>{{errorMessage}}
+            <button type="button" class="btn-close" (click)="errorMessage = ''"></button>
+          </div>
+
+          <!-- Registration Form -->
+          <form (ngSubmit)="onSubmit()" #registerForm="ngForm">
+            <!-- Name Field -->
+            <div class="mb-3">
+              <label for="name" class="form-label">
+                <i class="fas fa-user me-2"></i>Full Name
+              </label>
+              <input type="text" 
+                     class="form-control" 
+                     id="name" 
+                     name="name"
+                     [(ngModel)]="userData.name"
+                     required
+                     placeholder="Enter your full name">
+              <div *ngIf="!userData.name.trim() && registerForm.submitted" class="text-danger small mt-1">
+                Name is required
+              </div>
+            </div>
+
+            <!-- Email Field -->
+            <div class="mb-3">
+              <label for="email" class="form-label">
+                <i class="fas fa-envelope me-2"></i>Email Address
+              </label>
+              <input type="email" 
+                     class="form-control" 
+                     id="email" 
+                     name="email"
+                     [(ngModel)]="userData.email"
+                     required
+                     placeholder="Enter your email">
+              <div *ngIf="userData.email && !validateEmail(userData.email)" class="text-danger small mt-1">
+                Please enter a valid email address
+              </div>
+              <div *ngIf="!userData.email.trim() && registerForm.submitted" class="text-danger small mt-1">
+                Email is required
+              </div>
+            </div>
+
+            <!-- Password Field -->
+            <div class="mb-3">
+              <label for="password" class="form-label">
+                <i class="fas fa-lock me-2"></i>Password
+              </label>
+              <div class="input-group">
+                <input [type]="showPassword ? 'text' : 'password'" 
+                       class="form-control" 
+                       id="password" 
+                       name="password"
+                       [(ngModel)]="userData.password"
+                       required
+                       placeholder="Enter password (min 6 characters)">
+                <button class="btn btn-outline-secondary" 
+                        type="button" 
+                        (click)="togglePasswordVisibility()">
+                  <i class="fas" [class.fa-eye]="!showPassword" [class.fa-eye-slash]="showPassword"></i>
+                </button>
+              </div>
+              <div *ngIf="userData.password && userData.password.length < 6" class="text-danger small mt-1">
+                Password must be at least 6 characters
+              </div>
+              <div *ngIf="!userData.password && registerForm.submitted" class="text-danger small mt-1">
+                Password is required
+              </div>
+            </div>
+
+            <!-- Confirm Password Field -->
+            <div class="mb-4">
+              <label for="confirmPassword" class="form-label">
+                <i class="fas fa-lock me-2"></i>Confirm Password
+              </label>
+              <div class="input-group">
+                <input [type]="showConfirmPassword ? 'text' : 'password'" 
+                       class="form-control" 
+                       id="confirmPassword" 
+                       name="confirmPassword"
+                       [(ngModel)]="userData.confirmPassword"
+                       required
+                       placeholder="Confirm your password">
+                <button class="btn btn-outline-secondary" 
+                        type="button" 
+                        (click)="toggleConfirmPasswordVisibility()">
+                  <i class="fas" [class.fa-eye]="!showConfirmPassword" [class.fa-eye-slash]="showConfirmPassword"></i>
+                </button>
+              </div>
+              <div *ngIf="userData.password && userData.confirmPassword && !passwordsMatch" 
+                   class="text-danger small mt-1">
+                <i class="fas fa-exclamation-triangle me-1"></i>Passwords do not match
+              </div>
+              <div *ngIf="!userData.confirmPassword && registerForm.submitted" class="text-danger small mt-1">
+                Please confirm your password
+              </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="d-grid mb-3">
+              <button type="submit" 
+                      class="btn btn-primary btn-lg"
+                      [disabled]="!isFormValid || isLoading">
+                <span *ngIf="!isLoading">
+                  <i class="fas fa-user-plus me-2"></i>Create Account
+                </span>
+                <span *ngIf="isLoading">
+                  <div class="spinner-border spinner-border-sm me-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                  </div>
+                  Creating Account...
+                </span>
+              </button>
+            </div>
+          </form>
+
+          <!-- Links -->
+          <div class="text-center">
+            <p class="mb-2">Already have an account?</p>
+            <button class="btn btn-outline-primary" (click)="goToLogin()">
+              <i class="fas fa-sign-in-alt me-2"></i>Sign In
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

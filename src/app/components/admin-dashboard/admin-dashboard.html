@@ -1,0 +1,248 @@
+<div class="admin-container">
+  <!-- Admin Sidebar -->
+  <div class="admin-sidebar">
+    <div class="sidebar-header">
+      <h3><i class="fas fa-cog me-2"></i>Admin Panel</h3>
+    </div>
+    <ul class="sidebar-menu">
+      <li [class.active]="isActiveRoute('/admin/dashboard')">
+        <a routerLink="/admin/dashboard" routerLinkActive="active">
+          <i class="fas fa-tachometer-alt"></i> Dashboard
+        </a>
+      </li>
+      <li>
+        <a routerLink="/admin/products" routerLinkActive="active">
+          <i class="fas fa-box"></i> Products
+        </a>
+      </li>
+      <li>
+        <a routerLink="/admin/orders" routerLinkActive="active">
+          <i class="fas fa-shopping-cart"></i> Orders
+        </a>
+      </li>
+      <li>
+        <a routerLink="/admin/categories" routerLinkActive="active">
+          <i class="fas fa-tags"></i> Categories
+        </a>
+      </li>
+      <li>
+        <a routerLink="/admin/customers" routerLinkActive="active">
+          <i class="fas fa-users"></i> Customers
+        </a>
+      </li>
+      <li>
+        <a routerLink="/admin/reviews" routerLinkActive="active">
+          <i class="fas fa-star"></i> Reviews
+        </a>
+      </li>
+      <li>
+        <a routerLink="/admin/chat" routerLinkActive="active">
+          <i class="fas fa-comments"></i> Chat Support
+        </a>
+      </li>
+      <li>
+        <a routerLink="/">
+          <i class="fas fa-home"></i> View Site
+        </a>
+      </li>
+      <li>
+        <a (click)="logout()" style="cursor: pointer;">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </a>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Main Content -->
+  <div class="admin-main">
+    <div class="admin-header">
+      <h1>{{ pageTitle }}</h1>
+      <div class="user-info">
+        <span>{{ currentUser?.name }}</span>
+        <span class="badge bg-primary">Admin</span>
+      </div>
+    </div>
+    
+    <div class="admin-content">
+      <!-- Dashboard Stats -->
+      <div *ngIf="currentRoute === '/admin/dashboard' || currentRoute === '/admin'" class="dashboard-content">
+        <!-- Loading Spinner -->
+        <div *ngIf="isLoading" class="text-center py-5">
+          <div class="spinner-border text-primary" role="status">
+            <span class="visually-hidden">Loading...</span>
+          </div>
+          <p class="mt-2">Loading dashboard data...</p>
+        </div>
+
+        <!-- Stats Cards -->
+        <div *ngIf="!isLoading" class="row stats-row mb-4">
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card border-left-primary">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-primary mb-1">
+                      Total Sales</div>
+                    <div class="h5 mb-0 font-weight-bold">{{ dashboardStats.totalSales | currency }}</div>
+                  </div>
+                  <div class="col-auto">
+                    <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card border-left-success">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-success mb-1">
+                      Total Orders</div>
+                    <div class="h5 mb-0 font-weight-bold">{{ dashboardStats.totalOrders }}</div>
+                  </div>
+                  <div class="col-auto">
+                    <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card border-left-info">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-info mb-1">
+                      Total Products</div>
+                    <div class="h5 mb-0 font-weight-bold">{{ dashboardStats.totalProducts }}</div>
+                  </div>
+                  <div class="col-auto">
+                    <i class="fas fa-box fa-2x text-gray-300"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-xl-3 col-md-6 mb-4">
+            <div class="stat-card border-left-warning">
+              <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                  <div class="col mr-2">
+                    <div class="text-xs font-weight-bold text-warning mb-1">
+                      Total Customers</div>
+                    <div class="h5 mb-0 font-weight-bold">{{ dashboardStats.totalCustomers }}</div>
+                  </div>
+                  <div class="col-auto">
+                    <i class="fas fa-users fa-2x text-gray-300"></i>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Orders -->
+        <div *ngIf="!isLoading" class="row">
+          <div class="col-lg-8">
+            <div class="card shadow mb-4">
+              <div class="card-header d-flex justify-content-between align-items-center">
+                <h6 class="m-0 font-weight-bold">Recent Orders</h6>
+                <a routerLink="/admin/orders" class="btn btn-sm btn-primary">View All</a>
+              </div>
+              <div class="card-body">
+                <div class="table-responsive">
+                  <table class="table table-hover">
+                    <thead>
+                      <tr>
+                        <th>Order ID</th>
+                        <th>Customer</th>
+                        <th>Date</th>
+                        <th>Total</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr *ngFor="let order of recentOrders">
+                        <td>
+                          <a [routerLink]="['/admin/orders', order.orderId]">{{ order.orderId }}</a>
+                        </td>
+                        <td>{{ order.user?.name || 'Guest' }}</td>
+                        <td>{{ getOrderDate(order) | date:'short' }}</td>
+                        <td>{{ order.totalAmount | currency }}</td>
+                        <td>
+                          <span class="badge" [ngClass]="getStatusBadgeClass(order.status)">
+                            {{ order.status }}
+                          </span>
+                        </td>
+                      </tr>
+                      <tr *ngIf="recentOrders.length === 0">
+                        <td colspan="5" class="text-center text-muted py-3">
+                          No recent orders
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="col-lg-4">
+            <!-- Quick Actions -->
+            <div class="card shadow mb-4">
+              <div class="card-header">
+                <h6 class="m-0 font-weight-bold">Quick Actions</h6>
+              </div>
+              <div class="card-body">
+                <div class="d-grid gap-2">
+                  <a routerLink="/admin/products/new" class="btn btn-primary btn-block">
+                    <i class="fas fa-plus me-2"></i>Add Product
+                  </a>
+                  <a routerLink="/admin/categories" class="btn btn-success btn-block">
+                    <i class="fas fa-tags me-2"></i>Manage Categories
+                  </a>
+                  <a routerLink="/admin/chat" class="btn btn-info btn-block">
+                    <i class="fas fa-comments me-2"></i>Chat Support
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            <!-- Low Stock Alert -->
+            <div class="card shadow">
+              <div class="card-header">
+                <h6 class="m-0 font-weight-bold text-danger">Low Stock Alert</h6>
+              </div>
+              <div class="card-body">
+                <div class="list-group">
+                  <div *ngFor="let product of lowStockProducts" class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center">
+                      <div>
+                        <h6 class="mb-1">{{ product.name }}</h6>
+                        <small>Stock: {{ product.stock }}</small>
+                      </div>
+                      <a [routerLink]="['/admin/products/edit', product._id]" 
+                         class="btn btn-sm btn-warning">
+                        Restock
+                      </a>
+                    </div>
+                  </div>
+                  <div *ngIf="lowStockProducts.length === 0" class="list-group-item">
+                    <div class="text-center text-muted py-2">
+                      No low stock products
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <router-outlet></router-outlet>
+    </div>
+  </div>
+</div>

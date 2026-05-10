@@ -1,0 +1,319 @@
+<div class="admin-chat-container">
+  <!-- Header -->
+  <div class="admin-chat-header">
+    <div class="d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="mb-0">
+          <i class="fas fa-headset me-2"></i>
+          Admin Chat Support
+        </h2>
+        <p class="text-muted mb-0">
+          Chat with customers in real-time
+          <span class="ms-3">
+            <i class="fas fa-circle me-1" [class.text-success]="isAdminOnline" [class.text-danger]="!isAdminOnline"></i>
+            {{isAdminOnline ? 'Online' : 'Offline'}}
+          </span>
+        </p>
+      </div>
+      <div class="d-flex align-items-center">
+        <span class="badge bg-primary me-3">
+          <i class="fas fa-users me-1"></i>
+          {{connectedUsers.length}} Users
+        </span>
+        <span class="badge bg-danger" *ngIf="getTotalUnreadCount() > 0">
+          <i class="fas fa-envelope me-1"></i>
+          {{getTotalUnreadCount()}} Unread
+        </span>
+      </div>
+    </div>
+  </div>
+
+  <div class="row g-0 h-100">
+    <!-- Left Panel - User List -->
+    <div class="col-md-4 col-lg-3 border-end">
+      <div class="user-list-container">
+        <div class="user-list-header p-3 border-bottom">
+          <div class="input-group">
+            <span class="input-group-text">
+              <i class="fas fa-search"></i>
+            </span>
+            <input 
+              type="text" 
+              class="form-control" 
+              placeholder="Search users..."
+            >
+          </div>
+        </div>
+        
+        <div class="user-list">
+          <!-- Loading State -->
+          <div *ngIf="isLoading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2 text-muted">Loading users...</p>
+          </div>
+          
+          <!-- No Users -->
+          <div *ngIf="!isLoading && connectedUsers.length === 0" class="text-center py-5">
+            <i class="fas fa-user-slash fa-3x text-muted mb-3"></i>
+            <h5 class="text-muted">No users connected</h5>
+            <p class="text-muted small">Waiting for users to join the chat...</p>
+          </div>
+          
+          <!-- User List -->
+          <div *ngIf="!isLoading && connectedUsers.length > 0">
+            <div *ngFor="let userId of connectedUsers" 
+                 class="user-list-item" 
+                 [class.active]="selectedUserId === userId"
+                 (click)="selectUser(userId)">
+              <div class="d-flex align-items-center">
+                <div class="user-avatar me-3">
+                  <div class="avatar-circle" [class.bg-success]="userTypingMap.get(userId)">
+                    {{getUserInitials(userId)}}
+                  </div>
+                </div>
+                <div class="flex-grow-1">
+                  <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0">{{getUserName(userId)}}</h6>
+                    <span *ngIf="userTypingMap.get(userId)" class="typing-indicator-small">
+                      <span></span>
+                      <span></span>
+                      <span></span>
+                    </span>
+                  </div>
+                  <small class="text-muted">
+                    <i class="fas fa-clock me-1"></i>
+                    Active now
+                  </small>
+                </div>
+                <div class="unread-count ms-3" *ngIf="getUnreadCount(userId) > 0">
+                  <span class="badge bg-danger rounded-pill">
+                    {{getUnreadCount(userId)}}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Right Panel - Chat -->
+    <div class="col-md-8 col-lg-9">
+      <div class="chat-container" *ngIf="selectedUserId; else noUserSelected">
+        <!-- Chat Header -->
+        <div class="chat-header p-3 border-bottom">
+          <div class="d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center">
+              <div class="avatar-circle bg-primary me-3">
+                {{getUserInitials(selectedUserId)}}
+              </div>
+              <div>
+                <h5 class="mb-0">{{getUserName(selectedUserId)}}</h5>
+                <small class="text-muted">
+                  <span *ngIf="isUserTyping" class="text-primary">
+                    <i class="fas fa-pencil-alt me-1"></i>
+                    Typing...
+                  </span>
+                  <span *ngIf="!isUserTyping">
+                    Online
+                  </span>
+                </small>
+              </div>
+            </div>
+            <div>
+              <button class="btn btn-outline-secondary btn-sm me-2" (click)="checkConnection()">
+                <i class="fas fa-sync-alt"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Chat Messages -->
+        <div class="chat-messages p-3" #chatContainer>
+          <!-- Loading -->
+          <div *ngIf="isLoading" class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">Loading messages...</p>
+          </div>
+          
+          <!-- No Messages -->
+          <div *ngIf="!isLoading && messages.length === 0" class="text-center py-5">
+            <i class="fas fa-comment-slash fa-3x text-muted mb-4"></i>
+            <h4 class="text-muted">No Messages Yet</h4>
+            <p class="text-muted">Start a conversation with this user</p>
+          </div>
+          
+          <!-- Messages -->
+          <div *ngIf="!isLoading && messages.length > 0">
+            <div *ngFor="let message of messages; let i = index">
+              <!-- Date Separator -->
+              <div *ngIf="shouldShowDate(i)" class="date-separator text-center my-3">
+                <span class="badge bg-secondary px-3 py-2">
+                  <i class="fas fa-calendar-alt me-2"></i>
+                  {{formatDate(message.createdAt)}}
+                </span>
+              </div>
+              
+              <!-- User Message -->
+              <div *ngIf="!isAdminMessage(message)" class="mb-3">
+                <div class="d-flex">
+                  <div class="message-avatar me-2">
+                    <div class="avatar-circle bg-success">
+                      {{getUserInitials(message.sender)}}
+                    </div>
+                  </div>
+                  <div class="message-content flex-grow-1">
+                    <div class="message-header mb-1">
+                      <span class="fw-bold text-success">{{getUserName(message.sender)}}</span>
+                      <span class="text-muted small ms-2">{{formatTime(message.createdAt)}}</span>
+                    </div>
+                    <div class="message-bubble message-user">
+                      <div *ngIf="isProductInquiryMessage(message)" class="inquiry-badge mb-2">
+                        <span class="badge bg-info">
+                          <i class="fas fa-tag me-1"></i>
+                          Product Inquiry
+                        </span>
+                      </div>
+                      <div class="message-text">{{message.message}}</div>
+                      <div class="message-status mt-2">
+                        <span *ngIf="message.isRead" class="badge bg-success">
+                          <i class="fas fa-check-double me-1"></i>
+                          Read
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Admin Message -->
+              <div *ngIf="isAdminMessage(message)" class="mb-3">
+                <div class="d-flex justify-content-end">
+                  <div class="message-content text-end" style="max-width: 80%;">
+                    <div class="message-header mb-1">
+                      <span class="text-muted small me-2">{{formatTime(message.createdAt)}}</span>
+                      <span class="fw-bold text-primary">You</span>
+                    </div>
+                    <div class="message-bubble message-admin">
+                      <div class="message-text">{{message.message}}</div>
+                    </div>
+                  </div>
+                  <div class="message-avatar ms-2">
+                    <div class="avatar-circle bg-primary">
+                      <i class="fas fa-headset"></i>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- User Typing Indicator -->
+          <div *ngIf="isUserTyping" class="mb-3">
+            <div class="d-flex">
+              <div class="message-avatar me-2">
+                <div class="avatar-circle bg-success">
+                  {{getUserInitials(selectedUserId)}}
+                </div>
+              </div>
+              <div class="message-content flex-grow-1">
+                <div class="message-bubble message-user">
+                  <div class="typing-indicator">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Product Inquiry Response Panel -->
+        <div *ngIf="showProductResponse" class="product-inquiry-panel border-top">
+          <div class="p-3 bg-light">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <h6 class="mb-0">
+                <i class="fas fa-box me-2 text-primary"></i>
+                Product Inquiry Response
+              </h6>
+              <button class="btn btn-sm btn-outline-secondary" (click)="closeProductResponse()">
+                <i class="fas fa-times"></i>
+              </button>
+            </div>
+            <div class="mb-3">
+              <p class="mb-1"><strong>Product:</strong> {{currentInquiry?.productName}}</p>
+              <p class="mb-2"><strong>Question:</strong> {{currentInquiry?.question}}</p>
+            </div>
+            <div class="input-group">
+              <textarea 
+                class="form-control" 
+                [(ngModel)]="productResponse"
+                placeholder="Type your response..."
+                rows="3"
+              ></textarea>
+              <button 
+                class="btn btn-primary"
+                (click)="sendProductResponse()"
+                [disabled]="!productResponse.trim() || isSending"
+              >
+                Send Response
+              </button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Message Input -->
+        <div class="chat-input p-3 border-top">
+          <div class="input-group">
+            <textarea 
+              #messageInput
+              class="form-control" 
+              [(ngModel)]="newMessage"
+              (keydown.enter)="onKeyPress($event)"
+              (input)="onInputChange()"
+              placeholder="Type your message..."
+              rows="2"
+              style="resize: none;"
+              [disabled]="isSending"
+            ></textarea>
+            <button 
+              class="btn btn-primary"
+              (click)="sendMessage()"
+              [disabled]="!newMessage.trim() || isSending || !selectedUserId"
+            >
+              <span *ngIf="!isSending">
+                <i class="fas fa-paper-plane"></i>
+                Send
+              </span>
+              <span *ngIf="isSending">
+                <i class="fas fa-spinner fa-spin"></i>
+              </span>
+            </button>
+          </div>
+          <div class="mt-2 text-muted small">
+            <i class="fas fa-info-circle me-1"></i>
+            Press <kbd>Enter</kbd> to send • <kbd>Shift</kbd> + <kbd>Enter</kbd> for new line
+          </div>
+        </div>
+      </div>
+      
+      <!-- No User Selected -->
+      <ng-template #noUserSelected>
+        <div class="no-user-selected text-center py-5">
+          <i class="fas fa-comments fa-4x text-muted mb-4"></i>
+          <h3 class="text-muted">Select a User to Chat</h3>
+          <p class="text-muted mb-4">Choose a user from the list on the left to start a conversation</p>
+          <div class="alert alert-info mx-auto" style="max-width: 400px;">
+            <i class="fas fa-info-circle me-2"></i>
+            <strong>Tip:</strong> Users will appear here when they join the chat
+          </div>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

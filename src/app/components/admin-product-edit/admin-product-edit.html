@@ -1,0 +1,328 @@
+<!-- src/app/components/admin/products/product-edit/product-edit.component.html -->
+<div class="product-edit">
+  <div class="header">
+    <h2>Edit Product</h2>
+    <a routerLink="/admin/products" class="btn btn-secondary">
+      <i class="fas fa-arrow-left"></i> Back to Products
+    </a>
+  </div>
+
+  <!-- Success Message -->
+  <div *ngIf="successMessage" class="alert alert-success alert-dismissible fade show mb-3" role="alert">
+    {{ successMessage }}
+    <button type="button" class="btn-close" (click)="successMessage = ''; cdr.detectChanges()"></button>
+  </div>
+
+  <!-- Error Message -->
+  <div *ngIf="errorMessage" class="alert alert-danger alert-dismissible fade show mb-3" role="alert">
+    {{ errorMessage }}
+    <button type="button" class="btn-close" (click)="errorMessage = ''; cdr.detectChanges()"></button>
+  </div>
+
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" style="width: 3rem; height: 3rem;" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-3">Loading product data...</p>
+  </div>
+
+  <div *ngIf="!isLoading && product" class="card shadow">
+    <div class="card-body">
+      <form [formGroup]="productForm" (ngSubmit)="onSubmit()" enctype="multipart/form-data">
+        <div class="row">
+          <!-- Left Column -->
+          <div class="col-md-8">
+            <!-- Basic Information -->
+            <div class="card mb-3 border-0 shadow-sm">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">Basic Information</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label for="name" class="form-label">Product Name *</label>
+                  <input type="text" class="form-control" id="name" formControlName="name"
+                         [class.is-invalid]="productForm.get('name')?.invalid && productForm.get('name')?.touched">
+                  <div *ngIf="productForm.get('name')?.invalid && productForm.get('name')?.touched" 
+                       class="invalid-feedback">
+                    Product name is required
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <div class="col-md-6">
+                    <label for="category" class="form-label">Category *</label>
+                    <select class="form-control" id="category" formControlName="category"
+                            [class.is-invalid]="productForm.get('category')?.invalid && productForm.get('category')?.touched">
+                      <option value="">Select Category</option>
+                      <option *ngFor="let category of categories" [value]="category._id"
+                              [selected]="category._id === product.category?._id || category._id === product.category">
+                        {{ category.name }}
+                      </option>
+                    </select>
+                    <div *ngIf="productForm.get('category')?.invalid && productForm.get('category')?.touched" 
+                         class="invalid-feedback">
+                      Category is required
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="brand" class="form-label">Brand</label>
+                    <input type="text" class="form-control" id="brand" formControlName="brand">
+                  </div>
+                </div>
+
+                <div class="mb-3">
+                  <label for="description" class="form-label">Description</label>
+                  <textarea class="form-control" id="description" formControlName="description" rows="4"></textarea>
+                </div>
+              </div>
+            </div>
+
+            <!-- Existing Images -->
+            <div class="card mb-3 border-0 shadow-sm">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">Existing Images</h5>
+                <small class="text-muted">Check to keep, uncheck to remove</small>
+              </div>
+              <div class="card-body">
+                <div class="row" *ngIf="product.images && product.images.length > 0">
+                  <div *ngFor="let image of product.images; let i = index" class="col-6 col-md-4 col-lg-3 mb-3">
+                    <div class="position-relative">
+                      <img [src]="image" class="img-fluid rounded border" alt="Product Image"
+                           style="height: 150px; width: 100%; object-fit: cover;">
+                      <div class="form-check position-absolute top-0 start-0 m-2">
+                        <input class="form-check-input" type="checkbox" 
+                               [checked]="keepImages[i]" 
+                               (change)="toggleKeepImage(i, $event)"
+                               style="width: 1.2em; height: 1.2em;">
+                        <label class="form-check-label visually-hidden">Keep image</label>
+                      </div>
+                      <div *ngIf="!keepImages[i]" class="position-absolute top-50 start-50 translate-middle">
+                        <span class="badge bg-danger">Will be removed</span>
+                      </div>
+                    </div>
+                    <div class="text-center mt-1">
+                      <small class="text-muted">Image {{ i + 1 }}</small>
+                    </div>
+                  </div>
+                </div>
+                <div *ngIf="!product.images || product.images.length === 0" class="text-center py-4 text-muted">
+                  <i class="fas fa-image fa-3x mb-3"></i>
+                  <p>No existing images</p>
+                </div>
+              </div>
+            </div>
+
+            <!-- Add New Images -->
+            <div class="card mb-3 border-0 shadow-sm">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">Add New Images</h5>
+                <small class="text-muted">Upload new product images</small>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label for="newImages" class="form-label">Upload New Images</label>
+                  <input type="file" class="form-control" id="newImages" 
+                         multiple accept="image/*" (change)="onFileSelect($event)">
+                  <small class="text-muted">Supported: JPG, PNG, GIF, WEBP (Max 5MB each)</small>
+                  <div *ngIf="selectedFiles.length > 0" class="mt-2">
+                    <small class="text-success">
+                      <i class="fas fa-check-circle"></i> Selected new files: {{ selectedFiles.length }}
+                    </small>
+                  </div>
+                </div>
+
+                <!-- New Image Previews -->
+                <div *ngIf="imagePreviews.length > 0" class="image-previews mt-3">
+                  <h6 class="border-bottom pb-2">New Image Previews:</h6>
+                  <div class="row">
+                    <div *ngFor="let preview of imagePreviews; let i = index" class="col-6 col-md-4 col-lg-3 mb-3">
+                      <div class="position-relative">
+                        <img [src]="preview" class="img-fluid rounded border" alt="Preview"
+                             style="height: 150px; width: 100%; object-fit: cover;">
+                        <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0 m-1" 
+                                (click)="removeNewImage(i)">
+                          <i class="fas fa-times"></i>
+                        </button>
+                      </div>
+                      <div class="text-center mt-1">
+                        <small class="text-muted">New image {{ i + 1 }}</small>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pricing -->
+            <div class="card mb-3 border-0 shadow-sm">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">Pricing</h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="price" class="form-label">Price ($) *</label>
+                    <input type="number" class="form-control" id="price" formControlName="price"
+                           step="0.01" min="0"
+                           [class.is-invalid]="productForm.get('price')?.invalid && productForm.get('price')?.touched">
+                    <div *ngIf="productForm.get('price')?.invalid && productForm.get('price')?.touched" 
+                         class="invalid-feedback">
+                      Valid price is required
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="discountPrice" class="form-label">Discount Price ($)</label>
+                    <input type="number" class="form-control" id="discountPrice" formControlName="discountPrice"
+                           step="0.01" min="0">
+                    <small class="text-muted">Leave empty or set to 0 for no discount</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Inventory -->
+            <div class="card mb-3 border-0 shadow-sm">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">Inventory</h5>
+              </div>
+              <div class="card-body">
+                <div class="row">
+                  <div class="col-md-6">
+                    <label for="stock" class="form-label">Stock Quantity *</label>
+                    <input type="number" class="form-control" id="stock" formControlName="stock"
+                           min="0"
+                           [class.is-invalid]="productForm.get('stock')?.invalid && productForm.get('stock')?.touched">
+                    <div *ngIf="productForm.get('stock')?.invalid && productForm.get('stock')?.touched" 
+                         class="invalid-feedback">
+                      Stock quantity is required
+                    </div>
+                  </div>
+                  <div class="col-md-6">
+                    <label for="sku" class="form-label">SKU</label>
+                    <input type="text" class="form-control" id="sku" formControlName="sku">
+                    <small class="text-muted">Stock Keeping Unit</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column -->
+          <div class="col-md-4">
+            <!-- Variants -->
+            <div class="card mb-3 border-0 shadow-sm">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">Variants</h5>
+              </div>
+              <div class="card-body">
+                <div class="mb-3">
+                  <label for="colors" class="form-label">Colors (comma separated)</label>
+                  <input type="text" class="form-control" id="colors" formControlName="colors"
+                         placeholder="Red, Blue, Green">
+                  <small class="text-muted">Example: Red, Blue, Green</small>
+                </div>
+                <div class="mb-3">
+                  <label for="sizes" class="form-label">Sizes (comma separated)</label>
+                  <input type="text" class="form-control" id="sizes" formControlName="sizes"
+                         placeholder="S, M, L, XL">
+                  <small class="text-muted">Example: S, M, L, XL</small>
+                </div>
+              </div>
+            </div>
+
+            <!-- Status -->
+            <div class="card mb-3 border-0 shadow-sm">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">Product Status</h5>
+              </div>
+              <div class="card-body">
+                <div class="form-check form-switch mb-3">
+                  <input class="form-check-input" type="checkbox" role="switch" id="isFeatured" 
+                         formControlName="isFeatured" style="width: 3em; height: 1.5em;">
+                  <label class="form-check-label" for="isFeatured">
+                    <strong>Featured Product</strong>
+                    <br>
+                    <small class="text-muted">Show this product in featured section</small>
+                  </label>
+                </div>
+                <div class="form-check form-switch">
+                  <input class="form-check-input" type="checkbox" role="switch" id="isActive" 
+                         formControlName="isActive" style="width: 3em; height: 1.5em;">
+                  <label class="form-check-label" for="isActive">
+                    <strong>Active Product</strong>
+                    <br>
+                    <small class="text-muted">Visible to customers</small>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Product Info -->
+            <div class="card border-0 shadow-sm">
+              <div class="card-header bg-light">
+                <h5 class="mb-0">Product Information</h5>
+              </div>
+              <div class="card-body">
+                <ul class="list-unstyled mb-0">
+                  <li class="mb-2">
+                    <strong>Created:</strong> 
+                    <br>
+                    <span class="text-muted">{{ product.createdAt | date:'medium' }}</span>
+                  </li>
+                  <li class="mb-2">
+                    <strong>Last Updated:</strong>
+                    <br>
+                    <span class="text-muted">{{ product.updatedAt | date:'medium' }}</span>
+                  </li>
+                  <li class="mb-2">
+                    <strong>SKU:</strong>
+                    <br>
+                    <span class="text-muted">{{ product.sku || 'Not set' }}</span>
+                  </li>
+                  <li>
+                    <strong>Rating:</strong>
+                    <br>
+                    <span *ngIf="product.rating > 0" class="text-muted">
+                      {{ product.rating | number:'1.1-1' }} / 5 
+                      <span class="text-warning">
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star"></i>
+                        <i class="fas fa-star-half-alt"></i>
+                      </span>
+                      <br>
+                      ({{ product.reviewsCount || 0 }} reviews)
+                    </span>
+                    <span *ngIf="product.rating === 0 || !product.rating" class="text-muted">
+                      No ratings yet
+                    </span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="mt-4 pt-3 border-top">
+          <button type="submit" class="btn btn-primary btn-lg" [disabled]="productForm.invalid || isSubmitting">
+            <i class="fas fa-save me-2"></i>
+            <span *ngIf="!isSubmitting">Update Product</span>
+            <span *ngIf="isSubmitting">
+              <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+              Updating...
+            </span>
+          </button>
+          <button type="button" class="btn btn-outline-secondary btn-lg ms-2" (click)="cancel()">
+            <i class="fas fa-times me-2"></i>
+            Cancel
+          </button>
+          <button type="button" class="btn btn-danger btn-lg float-end" (click)="deleteProduct()" [disabled]="isSubmitting">
+            <i class="fas fa-trash me-2"></i> Delete Product
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

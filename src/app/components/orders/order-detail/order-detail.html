@@ -1,0 +1,259 @@
+<div class="container py-4">
+  <!-- Back Button -->
+  <div class="mb-4">
+    <button class="btn btn-outline-secondary" [routerLink]="['/orders']">
+      <i class="fas fa-arrow-left me-2"></i>Back to Orders
+    </button>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoading" class="text-center py-5">
+    <div class="spinner-border text-primary" role="status">
+      <span class="visually-hidden">Loading...</span>
+    </div>
+    <p class="mt-2">Loading order details...</p>
+  </div>
+
+  <!-- Error State -->
+  <div *ngIf="errorMessage && !isLoading" class="alert alert-danger">
+    <i class="fas fa-exclamation-triangle me-2"></i>
+    {{errorMessage}}
+  </div>
+
+  <!-- Order Details -->
+  <div *ngIf="order && !isLoading">
+    <!-- Order Header -->
+    <div class="card mb-4">
+      <div class="card-header bg-light">
+        <div class="d-flex justify-content-between align-items-center">
+          <div>
+            <h4 class="mb-0">Order #{{order.orderId}}</h4>
+            <small class="text-muted">Placed on {{formatDate(order.createdAt)}}</small>
+          </div>
+          <div class="text-end">
+            <span [class]="getStatusBadgeClass(order.status) + ' fs-6'">
+              {{order.status.toUpperCase()}}
+            </span>
+            <div class="mt-2">
+              <span class="h3">${{order.totalAmount.toFixed(2)}}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row">
+      <!-- Left Column: Order Items -->
+      <div class="col-lg-8">
+        <!-- Order Items -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-shopping-bag me-2"></i>Order Items</h5>
+          </div>
+          <div class="card-body">
+            <div *ngFor="let item of order.items" class="d-flex align-items-center mb-3 pb-3 border-bottom">
+              <div class="flex-shrink-0">
+                <img [src]="item.product?.images?.[0] || 'https://via.placeholder.com/80'" 
+                     alt="{{item.name}}" 
+                     class="img-thumbnail" 
+                     style="width: 80px; height: 80px; object-fit: cover;">
+              </div>
+              <div class="flex-grow-1 ms-3">
+                <h6 class="mb-1">{{item.name}}</h6>
+                <div *ngIf="item.color || item.size" class="mb-2">
+                  <small *ngIf="item.color" class="badge bg-light text-dark me-2">
+                    <i class="fas fa-palette me-1"></i>{{item.color}}
+                  </small>
+                  <small *ngIf="item.size" class="badge bg-light text-dark">
+                    <i class="fas fa-ruler me-1"></i>{{item.size}}
+                  </small>
+                </div>
+                <small class="text-muted">Quantity: {{item.quantity}}</small>
+              </div>
+              <div class="flex-shrink-0 text-end">
+                <div class="h6 mb-0">${{item.price.toFixed(2)}} each</div>
+                <div class="h5 text-primary">${{(item.price * item.quantity).toFixed(2)}}</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Order Timeline -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-history me-2"></i>Order Timeline</h5>
+          </div>
+          <div class="card-body">
+            <div class="timeline">
+              <div class="timeline-item" [class.active]="true">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                  <h6>Order Placed</h6>
+                  <small class="text-muted">{{formatDate(order.createdAt)}}</small>
+                </div>
+              </div>
+              
+              <div class="timeline-item" [class.active]="order.status !== 'pending'">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                  <h6>Order Confirmed</h6>
+                  <small class="text-muted">
+                    <span *ngIf="order.status !== 'pending'">{{formatDate(order.updatedAt)}}</span>
+                    <span *ngIf="order.status === 'pending'">Pending</span>
+                  </small>
+                </div>
+              </div>
+              
+              <div class="timeline-item" [class.active]="['processing', 'shipped', 'delivered'].includes(order.status)">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                  <h6>Processing</h6>
+                  <small class="text-muted">
+                    <span *ngIf="['processing', 'shipped', 'delivered'].includes(order.status)">
+                      In progress
+                    </span>
+                    <span *ngIf="!['processing', 'shipped', 'delivered'].includes(order.status)">
+                      Not started
+                    </span>
+                  </small>
+                </div>
+              </div>
+              
+              <div class="timeline-item" [class.active]="['shipped', 'delivered'].includes(order.status)">
+                <div class="timeline-marker"></div>
+                <div class="timeline-content">
+                  <h6>Shipped</h6>
+                  <small class="text-muted" *ngIf="order.trackingNumber">
+                    Tracking #: {{order.trackingNumber}}
+                  </small>
+                  <small class="text-muted" *ngIf="!order.trackingNumber">
+                    Not shipped yet
+                  </small>
+                </div>
+              </div>
+              
+              <!-- In the delivered timeline item section -->
+<div class="timeline-item" [class.active]="order.status === 'delivered'">
+  <div class="timeline-marker"></div>
+  <div class="timeline-content">
+    <h6>Delivered</h6>
+    <small class="text-muted" *ngIf="getDeliveredAt()">
+      {{formatDate(getDeliveredAt())}}
+    </small>
+    <small class="text-muted" *ngIf="!getDeliveredAt()">
+      Not delivered yet
+    </small>
+  </div>
+</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column: Order Summary -->
+      <div class="col-lg-4">
+        <!-- Order Summary -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Order Summary</h5>
+          </div>
+          <div class="card-body">
+            <div class="row mb-2">
+              <div class="col-6"><small class="text-muted">Order ID:</small></div>
+              <div class="col-6"><small>{{order.orderId}}</small></div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-6"><small class="text-muted">Order Date:</small></div>
+              <div class="col-6"><small>{{formatDate(order.createdAt)}}</small></div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-6"><small class="text-muted">Payment Method:</small></div>
+              <div class="col-6">
+                <small>
+                  <i [class]="getPaymentMethodIcon(order.paymentMethod) + ' me-1'"></i>
+                  {{order.paymentMethod?.toUpperCase()}}
+                </small>
+              </div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-6"><small class="text-muted">Payment Status:</small></div>
+              <div class="col-6">
+                <small [class]="getPaymentStatusBadgeClass(order.paymentStatus)">
+                  {{order.paymentStatus}}
+                </small>
+              </div>
+            </div>
+            <hr>
+            <div class="row mb-2">
+              <div class="col-6"><small>Subtotal:</small></div>
+              <div class="col-6 text-end"><small>${{order.subtotal.toFixed(2)}}</small></div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-6"><small>Shipping:</small></div>
+              <div class="col-6 text-end"><small>${{order.shippingFee.toFixed(2)}}</small></div>
+            </div>
+            <div class="row mb-2">
+              <div class="col-6"><small>Tax:</small></div>
+              <div class="col-6 text-end"><small>${{order.tax.toFixed(2)}}</small></div>
+            </div>
+            <hr>
+            <div class="row">
+              <div class="col-6"><strong>Total:</strong></div>
+              <div class="col-6 text-end"><strong>${{order.totalAmount.toFixed(2)}}</strong></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Shipping Address -->
+        <div class="card mb-4">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Shipping Address</h5>
+          </div>
+          <div class="card-body">
+            <p class="mb-1">
+              <strong>{{order.shippingAddress?.street}}</strong>
+            </p>
+            <p class="mb-1">
+              {{order.shippingAddress?.city}}, {{order.shippingAddress?.state}} {{order.shippingAddress?.zipCode}}
+            </p>
+            <p class="mb-0">{{order.shippingAddress?.country}}</p>
+          </div>
+        </div>
+
+        <!-- Order Actions -->
+        <div class="card">
+          <div class="card-header">
+            <h5 class="mb-0"><i class="fas fa-cogs me-2"></i>Order Actions</h5>
+          </div>
+          <div class="card-body">
+            <div class="d-grid gap-2">
+              <button *ngIf="canCancelOrder()" 
+                      class="btn btn-outline-danger" 
+                      (click)="cancelOrder()">
+                <i class="fas fa-times me-2"></i>Cancel Order
+              </button>
+              
+              <button *ngIf="order.trackingNumber" 
+                      class="btn btn-outline-info" 
+                      (click)="trackOrder()">
+                <i class="fas fa-truck me-2"></i>Track Order
+              </button>
+              
+              <button class="btn btn-outline-primary" (click)="reorder()">
+                <i class="fas fa-redo me-2"></i>Reorder Items
+              </button>
+              
+              <button class="btn btn-outline-secondary" (click)="contactSupport()">
+                <i class="fas fa-headset me-2"></i>Contact Support
+              </button>
+              
+              <button class="btn btn-outline-dark" (click)="printOrder()">
+                <i class="fas fa-print me-2"></i>Print Invoice
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

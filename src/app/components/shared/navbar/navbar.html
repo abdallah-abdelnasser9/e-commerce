@@ -1,0 +1,114 @@
+<nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+  <div class="container">
+    <!-- Brand/Logo -->
+    <a class="navbar-brand" routerLink="/">
+      <i class="fas fa-store me-2"></i>
+      <strong>E-Shop</strong>
+    </a>
+
+    <!-- Mobile Toggle Button -->
+    <button class="navbar-toggler" type="button" (click)="toggleMenu()">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <!-- Navbar Items -->
+    <div class="collapse navbar-collapse" [class.show]="!isMenuCollapsed">
+      <ul class="navbar-nav me-auto">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{exact: true}">
+            <i class="fas fa-home me-1"></i> Home
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/products" routerLinkActive="active">
+            <i class="fas fa-shopping-bag me-1"></i> Products
+          </a>
+        </li>
+        
+        <!-- Add Chat NavLink for logged in users -->
+        <li class="nav-item" *ngIf="isLoggedIn">
+          <a class="nav-link position-relative" routerLink="/chat" routerLinkActive="active">
+            <i class="fas fa-comments me-1"></i> Chat Support
+            <span *ngIf="unreadMessagesCount > 0" class="badge bg-danger ms-1">
+              {{unreadMessagesCount}}
+            </span>
+          </a>
+        </li>
+        
+        <li class="nav-item" *ngIf="isLoggedIn">
+          <a class="nav-link" routerLink="/cart" routerLinkActive="active">
+            <i class="fas fa-shopping-cart me-1"></i> Cart
+            <span *ngIf="cartItemsCount > 0" class="badge bg-primary ms-1">
+              {{cartItemsCount}}
+            </span>
+          </a>
+        </li>
+        <li class="nav-item" *ngIf="isLoggedIn">
+          <a class="nav-link" routerLink="/orders" routerLinkActive="active">
+            <i class="fas fa-receipt me-1"></i> Orders
+          </a>
+        </li>
+      </ul>
+
+      <!-- Search Bar -->
+      <div class="d-flex me-3">
+        <div class="input-group">
+          <input type="text" class="form-control" placeholder="Search products..." 
+                 [(ngModel)]="searchTerm" (keyup.enter)="searchProducts()">
+          <button class="btn btn-outline-primary" type="button" (click)="searchProducts()">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Auth Links -->
+      <div class="navbar-nav">
+        <div *ngIf="!isLoggedIn" class="nav-item">
+          <a class="btn btn-outline-primary me-2" routerLink="/login">
+            <i class="fas fa-sign-in-alt me-1"></i> Login
+          </a>
+          <a class="btn btn-primary" routerLink="/register">
+            <i class="fas fa-user-plus me-1"></i> Register
+          </a>
+        </div>
+        
+        <div *ngIf="isLoggedIn" class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" 
+             id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <div *ngIf="user?.avatar" class="me-2">
+              <img [src]="user.avatar" alt="User Avatar" class="rounded-circle" style="width: 30px; height: 30px;">
+            </div>
+            <i *ngIf="!user?.avatar" class="fas fa-user-circle me-1"></i>
+            <span>{{user?.name || 'User'}}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+            <li>
+              <a class="dropdown-item" routerLink="/profile">
+                <i class="fas fa-user me-2"></i> Profile
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" routerLink="/chat">
+                <i class="fas fa-comments me-2"></i> Chat Support
+                <span *ngIf="unreadMessagesCount > 0" class="badge bg-danger float-end">
+                  {{unreadMessagesCount}}
+                </span>
+              </a>
+            </li>
+            <li>
+              <a class="dropdown-item" routerLink="/wishlist">
+                <i class="fas fa-heart me-2"></i> Wishlist
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <a class="dropdown-item text-danger" (click)="logout()">
+                <i class="fas fa-sign-out-alt me-2"></i> Logout
+              </a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav>
