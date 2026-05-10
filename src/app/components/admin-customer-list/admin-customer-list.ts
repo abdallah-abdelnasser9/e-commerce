@@ -16,6 +16,7 @@ export class CustomerListComponent implements OnInit {
   private router = inject(Router);
   private cdr = inject(ChangeDetectorRef);
 
+  Math = Math;
   customers: Customer[] = [];
   filteredCustomers: Customer[] = [];
   isLoading = false;

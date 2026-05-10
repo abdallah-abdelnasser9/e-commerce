@@ -21,7 +21,7 @@ export class AdminChatComponent implements OnInit, OnDestroy {
   private chatService = inject(ChatService);
   private authService = inject(AuthService);
   private cdr = inject(ChangeDetectorRef);
-  
+  Math = Math;
   // Subscriptions
   private chatHistorySubscription: Subscription | undefined; // Add this
   private connectionSubscription: Subscription | undefined; // Add this

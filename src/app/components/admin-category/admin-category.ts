@@ -245,4 +245,7 @@ export class AdminCategoriesComponent implements OnInit {
     }
     return 'fas fa-tag';
   }
+  getProductCount(categoryId: string): number {
+  return 0;
+}
 }
