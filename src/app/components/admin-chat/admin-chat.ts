@@ -657,12 +657,14 @@ export class AdminChatComponent implements OnInit, OnDestroy {
   }
 
   // Keyboard handling
-  onKeyPress(event: KeyboardEvent): void {
-    if (event.key === 'Enter' && !event.shiftKey) {
-      event.preventDefault();
-      this.sendMessage();
-    }
+  onKeyPress(event: Event): void {
+  const keyboardEvent = event as KeyboardEvent;
+
+  if (keyboardEvent.key === 'Enter' && !keyboardEvent.shiftKey) {
+    keyboardEvent.preventDefault();
+    this.sendMessage();
   }
+}
 
   // Focus on message input
   focusMessageInput(): void {
@@ -672,7 +674,21 @@ export class AdminChatComponent implements OnInit, OnDestroy {
       }
     }, 100);
   }
+  checkConnection(): void {
+  console.log('Checking connection...');
 
+  this.isSocketConnected = this.chatService.isSocketConnected();
+
+  if (this.isSocketConnected) {
+    this.showToast('Socket is connected', 'success');
+  } else {
+    this.showToast('Socket disconnected. Reconnecting...', 'warning');
+    this.reconnect();
+  }
+
+  this.cdr.detectChanges();
+}
+  
   // Reconnect
   reconnect(): void {
     console.log('Reconnecting...');

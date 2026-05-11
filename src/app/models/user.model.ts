@@ -18,7 +18,7 @@ export interface User {
 
 
 export interface Address {
-  _id?: string;
+  _id: string;
   street: string;
   city: string;
   state: string;
